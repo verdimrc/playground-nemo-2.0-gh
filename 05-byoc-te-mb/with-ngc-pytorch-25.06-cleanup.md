@@ -110,6 +110,9 @@ Pre-requisite:
 ```bash
 export MAX_JOBS=32
 unset PIP_CONSTRAINT
+
+# Permanently disable the env var (for the next enroot start of the same enroot create)
+sed -i -e "s|^\(PIP_CONSTRAINT=/etc/pip/constraint.txt\)$|#\1|" /etc/environment
 ```
 
 ```console
@@ -152,24 +155,23 @@ the next TE version has a new dependency `nvidia-mathdx==25.1.1`.
 
 Now, let's build our TE wheel.
 
-```console
-$ cd /opt/TransformerEngine
+```bash
+cd /opt/TransformerEngine
 
 # This is TOT
-$ git rev-parse --short HEAD ; git rev-parse HEAD; git show -s --format='%an%n%ad%n%s'
-7e45be73
-7e45be73bb8d513abe8785ee078ac88719bcd9f1
-Przemyslaw Tredak
-Sun Oct 5 16:48:27 2025 -0700
-Added the NVFP4 section to the low precision training tutorial (#2237)
+git rev-parse --short HEAD ; git rev-parse HEAD; git show -s --format='%an%n%ad%n%s'
+# 7e45be73
+# 7e45be73bb8d513abe8785ee078ac88719bcd9f1
+# Przemyslaw Tredak
+# Sun Oct 5 16:48:27 2025 -0700
+# Added the NVFP4 section to the low precision training tutorial (#2237)
 
-$ pip install --no-build-isolation "nvidia-mathdx==25.1.1"
+pip install --no-build-isolation "nvidia-mathdx==25.1.1"
 
 # To shorten build time, target just H100 and A1000 (my laptop).
 # On DGX (8x H100, hundreds of CPU cores), the build time was ~5 minutes.
 # On my laptop, it's probably hours (must set MAX_JOBS=1 to avoid OOM).
-$ NVTE_CUDA_ARCHS="86;90" NVTE_FRAMEWORK=pytorch python setup.py bdist_wheel -v
-...
+NVTE_CUDA_ARCHS="86;90" NVTE_FRAMEWORK=pytorch python setup.py bdist_wheel -v
 ```
 
 After this, you should see the `.whl` file.
@@ -198,7 +200,7 @@ back to 2.7, hence you'll need to reinstall this `.whl` again post MB install.
 
 ### 2.2. Install MB
 
-```console
+```bash
 cd /opt/Megatron-Bridge
 git rev-parse --short HEAD ; git rev-parse HEAD ; git show -s --format='%an%n%ad%n%s'
 # b30bded5
@@ -240,8 +242,8 @@ pip install "${dependencies[@]}"
 # pip install --no-cache-dir "${dependencies[@]}"
 
 export PYTHONPATH=/opt/Megatron-Bridge/src:$PYTHONPATH
-# NOTE: replace with below to avoid PYTHONPATH. Editable install to keep using local repo as package location.
-# cd /opt/Megatron-Bridge/ #pip install --no-build-isolation -e .
+echo PYTHONPATH=/opt/Megatron-Bridge/src:$PYTHONPATH >> /etc/environment
+# pip install --no-build-isolation -e .
 
 # Downgrade transformer to modelopt's requirement, to avoid runtime warning.
 pip install 'nvidia-modelopt[hf]'
@@ -316,28 +318,29 @@ recipe.
 
 First, simple imports.
 
-```console
+```bash
 python -c " from megatron.bridge import AutoBridge
 
 from megatron.bridge.recipes.llama import llama32_1b_pretrain_config from
 megatron.bridge.training.gpt_step import forward_step from megatron.bridge.training.pretrain import
 pretrain
 "
+```
 
 Next, train a small model. Needs HF credentials in case you haven't cached the model checkpoints and
 the tokenizer.
 
-```console
+```bash
 # huggingface-cli is deprecated. Use hf ... as recommended by HF.
-$ hf auth login login ...
-
-$ hf auth whoami user: ... orgs: ...
+hf auth login login
+hf auth whoami
 ```
 
 Lastly, run a training. NOTE: this is also the test that can uncover PT <> Triton incompatibilities.
 
 ```bash
-cat << 'EOF' > /workspace/train.py from megatron.bridge import AutoBridge
+cat << 'EOF' > /workspace/train.py
+from megatron.bridge import AutoBridge
 
 from megatron.bridge.recipes.llama import llama32_1b_pretrain_config from
 megatron.bridge.training.gpt_step import forward_step from megatron.bridge.training.pretrain import
