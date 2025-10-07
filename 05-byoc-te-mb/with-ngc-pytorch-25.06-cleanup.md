@@ -8,8 +8,8 @@
   - [2.2. Install MB](#22-install-mb)
   - [2.3. Verify TE](#23-verify-te)
   - [2.4. Verify MB](#24-verify-mb)
-- [Appendix: training log](#appendix-training-log)
-- [Appendix: `nemo:25.09.00`](#appendix-nemo250900)
+- [3. Appendix: training log](#3-appendix-training-log)
+- [4. Appendix: `nemo:25.09.00`](#4-appendix-nemo250900)
 
 </details>
 
@@ -44,7 +44,7 @@ TL;DR:
 - Cannot use NGC PyTorch 25.08 or 25.09 as these provides CUDA-13.x
 - The stable versions of PyTorch and Triton needs CUDA-12.x.
 - Triton TOT adds CUDA-13.x, so at least it's buildable. However, PyTorch-2.9-dev (the version in
-  NGC PyTorch 25.0 container) doesn't work with this Triton TOT (version `>3.4`, probably will be
+  NGC PyTorch 25.09 container) doesn't work with this Triton TOT (version `>3.4`, probably will be
   called `3.5.x`).
 - On PyTorch 25.06 container, I found that PT-2.8 doesn't work with Triton 3.4.0, so we downgraded
   one version back to triton-3.3.0.
@@ -83,7 +83,7 @@ enroot start \
     -r -w hehe /bin/bash
 ```
 
-Follow the xxx section to build and install your own version of MB and TE.
+Follow the [Section 2](#2-inside-container) to build and install your own version of MB and TE.
 
 Once you exit from the container, export to a new `.sqsh` file so you'll have a new container image
 with both MB and TE installed.
@@ -182,8 +182,8 @@ $ ls -al dist/*
 -rw-r--r-- 1 root root 125641668 Oct  6 01:59 dist/transformer_engine-2.9.0.dev0+7e45be73-cp312-cp312-linux_x86_64.whl
 ```
 
-If you want to verify the TE installation now, i.e., before installing MB, then install the `.whl`
-now (below), then refer to section xxx.
+To verify the TE installation now before installing MB, install the `.whl` (below), then refer to
+section [2.3](#23-verify-te).
 
 ```bash
 pip uninstall transformer_engine transformer_engine_torch transformer_engine_cu12
@@ -379,7 +379,7 @@ EOF
 torchrun --standalone --nproc_per_node=8 /workspace/train.py
 ```
 
-## Appendix: training log
+## 3. Appendix: training log
 
 I like to snapshot GPU utilizations during training from a separate terminal in the host. At the
 very least, to get a rough estimate of per-GPU VRAM utilization, and get an idea of the GPU
@@ -1440,10 +1440,9 @@ Evaluating iter 32/32
 [rank7]:[W1006 03:29:28.838565410 ProcessGroupNCCL.cpp:1505] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
 [rank4]:[W1006 03:29:28.838748119 ProcessGroupNCCL.cpp:1505] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
 [rank6]:[W1006 03:29:28.918457984 ProcessGroupNCCL.cpp:1505] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
-
 ```
 
-## Appendix: `nemo:25.09.00`
+## 4. Appendix: `nemo:25.09.00`
 
 Probe versions provided by this NGC NeMo container.
 
