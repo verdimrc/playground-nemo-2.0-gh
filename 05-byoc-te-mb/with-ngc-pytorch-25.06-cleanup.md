@@ -190,7 +190,7 @@ section [2.3](#23-verify-te).
 ```bash
 pip uninstall transformer_engine transformer_engine_torch transformer_engine_cu12
 
-pip install -vvv './dist/transformer_engine-2.9.0.dev0+7e45be73-cp312-cp312-linux_x86_64.whl[pytorch]'
+pip install -vvv '/opt/TransformerEngine/dist/transformer_engine-2.9.0.dev0+7e45be73-cp312-cp312-linux_x86_64.whl[pytorch]'
 pip list | grep transformer engine
 # transformer_engine         2.9.0.dev0+7e45be73
 ```
