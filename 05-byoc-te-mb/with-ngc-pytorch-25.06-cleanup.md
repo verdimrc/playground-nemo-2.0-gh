@@ -342,13 +342,13 @@ Lastly, run a training. NOTE: this is also the test that can uncover PT <> Trito
 cat << 'EOF' > /workspace/train.py
 from megatron.bridge import AutoBridge
 
-from megatron.bridge.recipes.llama import llama32_1b_pretrain_config from
-megatron.bridge.training.gpt_step import forward_step from megatron.bridge.training.pretrain import
-pretrain
+from megatron.bridge.recipes.llama import llama32_1b_pretrain_config
+from megatron.bridge.training.gpt_step import forward_step
+from megatron.bridge.training.pretrain import pretrain
 
-if __name__ == "__main__": # Load Llama from Hugging Face Hub and convert to Megatron bridge =
-    AutoBridge.from_hf_pretrained("meta-llama/Llama-3.2-1B") model_provider =
-    bridge.to_megatron_provider()
+if __name__ == "__main__": # Load Llama from Hugging Face Hub and convert to Megatron
+    bridge = AutoBridge.from_hf_pretrained("meta-llama/Llama-3.2-1B")
+    model_provider = bridge.to_megatron_provider()
 
     seq_length = 1024
     #seq_length = 131072   # Match the seq_length in model provider. WARNING: needs TP=8, and even then, OOM even with ~1.9TB RAM
