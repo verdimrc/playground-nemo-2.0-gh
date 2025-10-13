@@ -340,39 +340,20 @@ Lastly, run a training. NOTE: this is also the test that can uncover PT <> Trito
 
 ```bash
 cat << 'EOF' > /workspace/train.py
-from megatron.bridge import AutoBridge
-
+# https://github.com/NVIDIA-NeMo/Megatron-Bridge/pull/892
 from megatron.bridge.recipes.llama import llama32_1b_pretrain_config
 from megatron.bridge.training.gpt_step import forward_step
 from megatron.bridge.training.pretrain import pretrain
 
-if __name__ == "__main__": # Load Llama from Hugging Face Hub and convert to Megatron
-    bridge = AutoBridge.from_hf_pretrained("meta-llama/Llama-3.2-1B")
-    model_provider = bridge.to_megatron_provider()
+if __name__ == "__main__":
+    # The recipe uses the Llama 3.2 1B model configuration from HuggingFace
+    cfg = llama32_1b_pretrain_config(mock=True, seq_length=1024, tensor_parallelism=8)  # HAHA
 
-    seq_length = 1024
-    #seq_length = 131072   # Match the seq_length in model provider. WARNING: needs TP=8, and even then, OOM even with ~1.9TB RAM
-
-    # Get defaults for other configuration from an existing Llama 3.2 recipe
-    # HAHA. WAR. Avoid failing assert lr_wamup_steps < lr_decay_steps
-    cfg = llama32_1b_pretrain_config(mock=True, seq_length=seq_length, lr_decay_iters=10000, tensor_parallelism=8)
-    cfg.model = model_provider
-
-    # https://github.com/NVIDIA-NeMo/Megatron-Bridge/issues/879
-    #
-    # Reset back cfg.model.seq_length to the one I want.
-    # model_provider.seq_length=131072 is not runnable on 8x H100.
-    # Setting TP=8 can progress until data loader, but hits CPU OOM (RAM=1.9TB, num_workers=1)
-    # See model_provider.txt and model_cfg.txt on the diff between model_provder and model_cfg (recipe).
-    cfg.model.seq_length = seq_length
-
+    # Override training parameters
     cfg.train.train_iters = 10
-
-    cfg.dataset.seq_length = cfg.model.seq_length
-    cfg.dataset.sequence_length = cfg.model.seq_length
+    cfg.scheduler.lr_decay_iters = 10000
+    cfg.model.vocab_size = 8192
     cfg.tokenizer.vocab_size = cfg.model.vocab_size
-
-    cfg.dataset.num_workers=1
 
     pretrain(cfg, forward_step)
 EOF
